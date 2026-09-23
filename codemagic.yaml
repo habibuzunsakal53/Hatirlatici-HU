@@ -6,21 +6,19 @@ workflows:
     environment:
       xcode: latest
     scripts:
-      - name: Build Swift Playgrounds App
+      - name: List Schemes and Build
         script: |
-          # Projenin olduğu dizine git
-          PACKAGE_DIR=$(find . -name "Package.swift" -exec dirname {} \;)
-          cd "$PACKAGE_DIR"
+          # Projedeki gerçek Şema (Scheme) isimlerini loga yazdır
+          xcodebuild -list
           
-          # Swift Playgrounds uygulamasını iOS için derle
-          xcodebuild \
-            -scheme "$(basename "$PWD")" \
+          # Swift Package projesini derle
+          xcodebuild build \
+            -scheme "Hatirlataci HU" \
             -destination 'generic/platform=iOS' \
             -configuration Release \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            -derivedDataPath build \
-            build
+            -derivedDataPath build
     artifacts:
       - /**/build/Build/Products/Release-iphoneos/*.app
       - /**/build/Build/Products/Release-iphoneos/*.ipa
