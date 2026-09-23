@@ -8,14 +8,22 @@ workflows:
     scripts:
       - name: Build Swift Playgrounds App
         script: |
-          # 1. Proje dizinine gir
+          # 1. Package.swift dosyasının olduğu dizine gir
           PACKAGE_DIR=$(find . -name "Package.swift" -exec dirname {} \;)
           cd "$PACKAGE_DIR"
           
-          # 2. AppleProductTypes modülünü kapsayacak şekilde iOS SDK ile derle
+          # 2. Şema adını manifest içinden dinamik oku
+          SCHEME_NAME=$(xcodebuild -list | grep -A 5 "Schemes:" | tail -n +2 | xargs | awk '{print $1}')
+          
+          # Eğer şema bulunamazsa varsayılan App şemasını kullan
+          if [ -z "$SCHEME_NAME" ]; then
+            SCHEME_NAME="MyApp"
+          fi
+
+          # 3. iOS cihaz hedefiyle derle
           xcodebuild build \
-            -scheme "Hatirlataci HU" \
-            -sdk iphoneos \
+            -scheme "$SCHEME_NAME" \
+            -destination 'generic/platform=iOS' \
             -configuration Release \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
