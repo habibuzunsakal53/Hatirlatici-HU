@@ -9,7 +9,7 @@ workflows:
       - name: Build Swift Package App
         script: |
           xcodebuild build \
-            -scheme "MyApp" \
+            -scheme "Hatirlatici HU" \
             -destination 'generic/platform=iOS' \
             -configuration Release \
             CODE_SIGNING_ALLOWED=NO \
