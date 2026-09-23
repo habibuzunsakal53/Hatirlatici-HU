@@ -6,23 +6,19 @@ workflows:
     environment:
       xcode: latest
     scripts:
-      - name: Build Swift Playgrounds Package
+      - name: Build Swift Playgrounds App
         script: |
-          # 1. Swift Playgrounds klasörüne geç
+          # 1. Swift Playgrounds proje dizinini bul
           PACKAGE_DIR=$(find . -name "Package.swift" -exec dirname {} \;)
           cd "$PACKAGE_DIR"
           
-          # 2. Üretilecek Xcode Projesini Otomatik Oluştur
-          swift package generate-xcodeproj
+          # 2. Klasör adını al
+          APP_NAME=$(basename "$PWD")
           
-          # 3. Oluşan Projedeki Şema İsmini Otomatik Tespit Et
-          SCHEME_NAME=$(xcodebuild -list | grep -A 5 "Schemes:" | tail -n +2 | xargs | awk '{print $1}')
-          
-          # 4. Derlemeyi Başlat
+          # 3. iOS SDK kullanarak doğrudan Swift Playgrounds paketini derle
           xcodebuild build \
-            -project *.xcodeproj \
-            -scheme "$SCHEME_NAME" \
-            -destination 'generic/platform=iOS' \
+            -scheme "$APP_NAME" \
+            -sdk iphoneos \
             -configuration Release \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
