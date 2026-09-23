@@ -8,18 +8,19 @@ workflows:
     scripts:
       - name: Build Swift Playgrounds App
         script: |
-          # Proje dizinini bul ve o klasöre geç
+          # Projenin olduğu dizine git
           PACKAGE_DIR=$(find . -name "Package.swift" -exec dirname {} \;)
           cd "$PACKAGE_DIR"
           
-          # Swift Playgrounds App projesini iOS için derle
-          xcodebuild build \
-            -packagePath . \
+          # Swift Playgrounds uygulamasını iOS için derle
+          xcodebuild \
             -scheme "$(basename "$PWD")" \
             -destination 'generic/platform=iOS' \
             -configuration Release \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            -derivedDataPath build
+            -derivedDataPath build \
+            build
     artifacts:
       - /**/build/Build/Products/Release-iphoneos/*.app
+      - /**/build/Build/Products/Release-iphoneos/*.ipa
