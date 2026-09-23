@@ -6,22 +6,16 @@ workflows:
     environment:
       xcode: latest
     scripts:
-      - name: Convert and Build SwiftPM App
+      - name: Build Swift Playgrounds App
         script: |
-          # 1. Package.swift dosyasının olduğu dizine git
+          # 1. Proje dizinine gir
           PACKAGE_DIR=$(find . -name "Package.swift" -exec dirname {} \;)
           cd "$PACKAGE_DIR"
           
-          # 2. Swift Playgrounds paketini Xcode Projesine dönüştür
-          swift package generate-xcodeproj
-          
-          # 3. Otomatik oluşan xcodeproj ile iOS derlemesini başlat
-          PROJ_FILE=$(ls -d *.xcodeproj | head -n 1)
-          
+          # 2. AppleProductTypes modülünü kapsayacak şekilde iOS SDK ile derle
           xcodebuild build \
-            -project "$PROJ_FILE" \
-            -scheme "${PROJ_FILE%.xcodeproj}" \
-            -destination 'generic/platform=iOS' \
+            -scheme "Hatirlataci HU" \
+            -sdk iphoneos \
             -configuration Release \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
