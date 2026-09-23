@@ -6,14 +6,20 @@ workflows:
     environment:
       xcode: latest
     scripts:
-      - name: Build Swift Package App
+      - name: Build Swift Playgrounds App
         script: |
-          xcodebuild build \
-            -scheme "Hatirlataci HU" \
+          # Swift Playgrounds klasörünü (.swiftpm içeren dizini) bul
+          SWIFTPM_DIR=$(find . -name "*.swiftpm" -o -name "Package.swift" | head -n 1 | xargs dirname)
+          cd "$SWIFTPM_DIR"
+          
+          # Bulunulan dizinde xcodebuild çalıştır
+          xcodebuild \
+            -scheme "$(basename "$PWD" .swiftpm)" \
             -destination 'generic/platform=iOS' \
             -configuration Release \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             -derivedDataPath build
     artifacts:
-      - build/Build/Products/Release-iphoneos/**/*
+      - /**/build/Build/Products/Release-iphoneos/*.app
+      - /**/build/Build/Products/Release-iphoneos/*.ipa
