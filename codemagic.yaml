@@ -6,12 +6,8 @@ workflows:
     environment:
       xcode: latest
     scripts:
-      - name: List Schemes and Build
+      - name: Build Swift Package App
         script: |
-          # Projedeki gerçek Şema (Scheme) isimlerini loga yazdır
-          xcodebuild -list
-          
-          # Swift Package projesini derle
           xcodebuild build \
             -scheme "Hatirlataci HU" \
             -destination 'generic/platform=iOS' \
@@ -20,5 +16,4 @@ workflows:
             CODE_SIGNING_REQUIRED=NO \
             -derivedDataPath build
     artifacts:
-      - /**/build/Build/Products/Release-iphoneos/*.app
-      - /**/build/Build/Products/Release-iphoneos/*.ipa
+      - build/Build/Products/Release-iphoneos/**/*
