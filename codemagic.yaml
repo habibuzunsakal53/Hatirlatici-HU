@@ -6,15 +6,22 @@ workflows:
     environment:
       xcode: latest
     scripts:
-      - name: Build Swift Playgrounds App
+      - name: Build Swift Playgrounds Package
         script: |
-          # Swift Playgrounds klasörünü (.swiftpm içeren dizini) bul
-          SWIFTPM_DIR=$(find . -name "*.swiftpm" -o -name "Package.swift" | head -n 1 | xargs dirname)
-          cd "$SWIFTPM_DIR"
+          # 1. Swift Playgrounds klasörüne geç
+          PACKAGE_DIR=$(find . -name "Package.swift" -exec dirname {} \;)
+          cd "$PACKAGE_DIR"
           
-          # Bulunulan dizinde xcodebuild çalıştır
-          xcodebuild \
-            -scheme "$(basename "$PWD" .swiftpm)" \
+          # 2. Üretilecek Xcode Projesini Otomatik Oluştur
+          swift package generate-xcodeproj
+          
+          # 3. Oluşan Projedeki Şema İsmini Otomatik Tespit Et
+          SCHEME_NAME=$(xcodebuild -list | grep -A 5 "Schemes:" | tail -n +2 | xargs | awk '{print $1}')
+          
+          # 4. Derlemeyi Başlat
+          xcodebuild build \
+            -project *.xcodeproj \
+            -scheme "$SCHEME_NAME" \
             -destination 'generic/platform=iOS' \
             -configuration Release \
             CODE_SIGNING_ALLOWED=NO \
