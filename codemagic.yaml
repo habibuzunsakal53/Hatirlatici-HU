@@ -6,14 +6,21 @@ workflows:
     environment:
       xcode: latest
     scripts:
-      - name: Build Swift Playgrounds App
+      - name: Convert and Build SwiftPM App
         script: |
-          # 1. Package.swift dosyasının olduğu klasöre gir
-          cd "$(dirname "$(find . -name "Package.swift" | head -n 1)")"
+          # 1. Package.swift dosyasının olduğu dizine git
+          PACKAGE_DIR=$(find . -name "Package.swift" -exec dirname {} \;)
+          cd "$PACKAGE_DIR"
           
-          # 2. Doğrudan paket ismiyle iOS derlemesini başlat
+          # 2. Swift Playgrounds paketini Xcode Projesine dönüştür
+          swift package generate-xcodeproj
+          
+          # 3. Otomatik oluşan xcodeproj ile iOS derlemesini başlat
+          PROJ_FILE=$(ls -d *.xcodeproj | head -n 1)
+          
           xcodebuild build \
-            -scheme "Hatirlataci HU" \
+            -project "$PROJ_FILE" \
+            -scheme "${PROJ_FILE%.xcodeproj}" \
             -destination 'generic/platform=iOS' \
             -configuration Release \
             CODE_SIGNING_ALLOWED=NO \
@@ -21,3 +28,4 @@ workflows:
             -derivedDataPath build
     artifacts:
       - /**/build/Build/Products/Release-iphoneos/*.app
+      - /**/build/Build/Products/Release-iphoneos/*.ipa
