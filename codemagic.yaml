@@ -121,12 +121,7 @@ workflows:
           }
           EOF
 
-          # 3. Swift dosyalarını projeye derleme kaynağı olarak ekle
-          find . -name "*.swift" ! -name "Package.swift" | while read file; do
-            xcodebuild -project DummyApp.xcodeproj -target DummyApp -configuration Release CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
-          done
-
-          # 4. Derlemeyi Başlat
+          # 3. Derlemeyi Başlat
           xcodebuild build \
             -project DummyApp.xcodeproj \
             -scheme DummyApp \
@@ -135,6 +130,9 @@ workflows:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             -derivedDataPath build
+
+          # 4. Derlenen .app dosyasını kök dizine kopyala
+          mkdir -p $CM_BUILD_DIR/output
+          cp -R build/Build/Products/Release-iphoneos/*.app $CM_BUILD_DIR/output/
     artifacts:
-      - /**/build/Build/Products/Release-iphoneos/*.app
-      - /**/build/Build/Products/Release-iphoneos/*.ipa
+      - output/*.app
