@@ -6,23 +6,130 @@ workflows:
     environment:
       xcode: latest
     scripts:
-      - name: Build Swift Playgrounds App
+      - name: Build Swift Playgrounds App via Xcode Project
         script: |
-          # 1. Package.swift dosyasının olduğu dizine gir
+          set -e
+          
+          # 1. Proje dizinine git
           PACKAGE_DIR=$(find . -name "Package.swift" -exec dirname {} \;)
           cd "$PACKAGE_DIR"
           
-          # 2. Şema adını manifest içinden dinamik oku
-          SCHEME_NAME=$(xcodebuild -list | grep -A 5 "Schemes:" | tail -n +2 | xargs | awk '{print $1}')
-          
-          # Eğer şema bulunamazsa varsayılan App şemasını kullan
-          if [ -z "$SCHEME_NAME" ]; then
-            SCHEME_NAME="MyApp"
-          fi
+          # 2. Geçici bir Xcode iOS Projesi oluştur
+          mkdir -p DummyApp.xcodeproj
+          cat << 'EOF' > DummyApp.xcodeproj/project.pbxproj
+          // !$*UTF8*$!
+          {
+            archiveVersion = 1;
+            classes = {};
+            objectVersion = 56;
+            objects = {
+              13B07F861A680F5B00A75B9A /* Project object */ = {
+                isa = PBXProject;
+                attributes = { BuildIndependentTargetsInParallel = YES; LastUpgradeCheck = 1500; TargetAttributes = { 13B07F8C1A680F5B00A75B9A = { DevelopmentTeam = ""; }; }; };
+                buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXProject "DummyApp" */;
+                compatibilityVersion = "Xcode 14.0";
+                developmentRegion = en;
+                hasScannedForEncodings = 0;
+                knownRegions = ( en, Base );
+                mainGroup = 13B07F8E1A680F5B00A75B9A;
+                productRefGroup = 13B07F8E1A680F5B00A75B9A;
+                projectDirPath = "";
+                projectRoot = "";
+                targets = ( 13B07F8C1A680F5B00A75B9A /* DummyApp */ );
+              };
+              13B07F8C1A680F5B00A75B9A /* DummyApp */ = {
+                isa = PBXNativeTarget;
+                buildConfigurationList = 13B07F961A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "DummyApp" */;
+                buildPhases = ( 13B07F8D1A680F5B00A75B9A /* Sources */ );
+                buildRules = ();
+                dependencies = ();
+                name = DummyApp;
+                productName = DummyApp;
+                productReference = 13B07F8F1A680F5B00A75B9A /* DummyApp.app */;
+                productType = "com.apple.product-type.application";
+              };
+              13B07F8D1A680F5B00A75B9A /* Sources */ = {
+                isa = PBXSourcesBuildPhase;
+                buildActionMask = 2147483647;
+                files = ();
+                runOnlyForDeploymentPostprocessing = 0;
+              };
+              13B07F8E1A680F5B00A75B9A /* Main Group */ = {
+                isa = PBXGroup;
+                children = ( 13B07F8F1A680F5B00A75B9A /* DummyApp.app */ );
+                sourceTree = "<group>";
+              };
+              13B07F8F1A680F5B00A75B9A /* DummyApp.app */ = {
+                isa = PBXFileReference;
+                explicitFileType = wrapper.application;
+                includeInIndex = 0;
+                path = DummyApp.app;
+                sourceTree = BUILT_PRODUCTS_DIR;
+              };
+              13B07F941A680F5B00A75B9A /* Debug */ = {
+                isa = XCBuildConfiguration;
+                buildSettings = {
+                  ALWAYS_SEARCH_USER_PATHS = NO;
+                  CLANG_ENABLE_MODULES = YES;
+                  CODE_SIGNING_ALLOWED = NO;
+                  CODE_SIGNING_REQUIRED = NO;
+                  GENERATE_INFOPLIST_FILE = YES;
+                  INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+                  INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+                  IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+                  PRODUCT_BUNDLE_IDENTIFIER = "com.hatirlatici.app";
+                  PRODUCT_NAME = "Hatirlatici";
+                  SDKROOT = iphoneos;
+                  SWIFT_VERSION = 5.0;
+                  TARGETED_DEVICE_FAMILY = "1,2";
+                };
+                name = Debug;
+              };
+              13B07F951A680F5B00A75B9A /* Release */ = {
+                isa = XCBuildConfiguration;
+                buildSettings = {
+                  ALWAYS_SEARCH_USER_PATHS = NO;
+                  CLANG_ENABLE_MODULES = YES;
+                  CODE_SIGNING_ALLOWED = NO;
+                  CODE_SIGNING_REQUIRED = NO;
+                  GENERATE_INFOPLIST_FILE = YES;
+                  INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+                  INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+                  IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+                  PRODUCT_BUNDLE_IDENTIFIER = "com.hatirlatici.app";
+                  PRODUCT_NAME = "Hatirlatici";
+                  SDKROOT = iphoneos;
+                  SWIFT_VERSION = 5.0;
+                  TARGETED_DEVICE_FAMILY = "1,2";
+                };
+                name = Release;
+              };
+              13B07F931A680F5B00A75B9A /* Build configuration list for PBXProject "DummyApp" */ = {
+                isa = XCConfigurationList;
+                buildConfigurations = ( 13B07F941A680F5B00A75B9A /* Debug */, 13B07F951A680F5B00A75B9A /* Release */ );
+                defaultConfigurationIsVisible = 0;
+                defaultConfigurationName = Release;
+              };
+              13B07F961A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "DummyApp" */ = {
+                isa = XCConfigurationList;
+                buildConfigurations = ( 13B07F941A680F5B00A75B9A /* Debug */, 13B07F951A680F5B00A75B9A /* Release */ );
+                defaultConfigurationIsVisible = 0;
+                defaultConfigurationName = Release;
+              };
+            };
+            rootObject = 13B07F861A680F5B00A75B9A /* Project object */;
+          }
+          EOF
 
-          # 3. iOS cihaz hedefiyle derle
+          # 3. Swift dosyalarını projeye derleme kaynağı olarak ekle
+          find . -name "*.swift" ! -name "Package.swift" | while read file; do
+            xcodebuild -project DummyApp.xcodeproj -target DummyApp -configuration Release CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
+          done
+
+          # 4. Derlemeyi Başlat
           xcodebuild build \
-            -scheme "$SCHEME_NAME" \
+            -project DummyApp.xcodeproj \
+            -scheme DummyApp \
             -destination 'generic/platform=iOS' \
             -configuration Release \
             CODE_SIGNING_ALLOWED=NO \
