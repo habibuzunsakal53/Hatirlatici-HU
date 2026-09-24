@@ -10,11 +10,11 @@ workflows:
         script: |
           set -e
           
-          # 1. Proje dizinine git
+          # 1. Package.swift klasörüne git
           PACKAGE_DIR=$(find . -name "Package.swift" -exec dirname {} \;)
           cd "$PACKAGE_DIR"
           
-          # 2. Geçici bir Xcode iOS Projesi oluştur
+          # 2. Xcode Projesi Yapısını Hazırla
           mkdir -p DummyApp.xcodeproj
           cat << 'EOF' > DummyApp.xcodeproj/project.pbxproj
           // !$*UTF8*$!
@@ -121,7 +121,10 @@ workflows:
           }
           EOF
 
-          # 3. Derlemeyi Başlat
+          # 3. Tüm Swift Kodlarını Birleştirip Derle
+          mkdir -p build_src
+          find . -name "*.swift" ! -name "Package.swift" -exec cp {} build_src/ \;
+          
           xcodebuild build \
             -project DummyApp.xcodeproj \
             -scheme DummyApp \
@@ -129,10 +132,15 @@ workflows:
             -configuration Release \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
+            OTHER_SWIFTC_FLAGS="$(find build_src -name "*.swift" | xargs)" \
             -derivedDataPath build
 
-          # 4. Derlenen .app dosyasını kök dizine kopyala
+          # 4. Otomatik IPA Paketlemesi Yap
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/Hatirlatici.app Payload/
+          zip -r Hatirlatici.ipa Payload
+          
           mkdir -p $CM_BUILD_DIR/output
-          cp -R build/Build/Products/Release-iphoneos/*.app $CM_BUILD_DIR/output/
+          cp Hatirlatici.ipa $CM_BUILD_DIR/output/
     artifacts:
-      - output/*.app
+      - output/*.ipa
