@@ -6,28 +6,54 @@ workflows:
     environment:
       xcode: latest
     scripts:
-      - name: Build iOS App and Package IPA
+      - name: Build iOS App and Create Valid IPA
         script: |
           set -e
           
-          # Swift dosyalarını derle
-          mkdir -p build_output
+          # 1. Proje dizinini ayarla
+          PACKAGE_DIR=$(find . -name "*.swift" -exec dirname {} \; | head -n 1)
+          cd "$PACKAGE_DIR"
           
+          # 2. Çalıştırılabilir ikili dosyayı derle
+          mkdir -p build_output
           swiftc -sdk $(xcrun --sdk iphoneos --show-sdk-path) \
             -target arm64-apple-ios16.0 \
             -emit-executable \
             -o build_output/Hatirlatici \
             $(find . -name "*.swift" ! -name "Package.swift*")
 
-          # IPA Yapısını Hazırla
+          # 3. Geçerli iOS App Dizin Yapısını ve Info.plist Hazırla
           mkdir -p Payload/Hatirlatici.app
           cp build_output/Hatirlatici Payload/Hatirlatici.app/
-          
-          if [ -f "Info.plist" ]; then
-            cp Info.plist Payload/Hatirlatici.app/
-          fi
-          
-          # IPA Oluştur
+
+          cat << 'EOF' > Payload/Hatirlatici.app/Info.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>Hatirlatici</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.hatirlatici.app</string>
+              <key>CFBundleName</key>
+              <string>Hatirlatici</string>
+              <key>CFBundleShortVersionString</key>
+              <string>1.0</string>
+              <key>CFBundleVersion</key>
+              <string>1</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>LSRequiresIPhoneOS</key>
+              <true/>
+              <key>MinimumOSVersion</key>
+              <string>16.0</string>
+              <key>UILaunchScreen</key>
+              <dict/>
+          </dict>
+          </plist>
+          EOF
+
+          # 4. IPA Sıkıştırması Yap
           zip -r Hatirlatici.ipa Payload
           
           mkdir -p $CM_BUILD_DIR/output
