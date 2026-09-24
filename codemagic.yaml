@@ -6,38 +6,28 @@ workflows:
     environment:
       xcode: latest
     scripts:
-      - name: Build Swift PM App and Create IPA
+      - name: Build iOS App and Package IPA
         script: |
           set -e
           
-          # 1. Package.swift klasörüne git
-          PACKAGE_DIR=$(find . -name "Package.swift" -exec dirname {} \;)
-          cd "$PACKAGE_DIR"
+          # Swift dosyalarını derle
+          mkdir -p build_output
           
-          # 2. Doğrudan Swift Package üzerinden iOS derlemesi yap
-          swift build -c release --triple arm64-apple-ios16.0-simulator
-          
-          # 3. xcodebuild ile bağımsız executable çıktısı al
-          xcodebuild build \
-            -scheme "$(xcodebuild -list | grep -A 5 "Schemes:" | tail -n +2 | xargs | awk '{print $1}')" \
-            -destination 'generic/platform=iOS' \
-            -configuration Release \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            -derivedDataPath build
+          swiftc -sdk $(xcrun --sdk iphoneos --show-sdk-path) \
+            -target arm64-apple-ios16.0 \
+            -emit-executable \
+            -o build_output/Hatirlatici \
+            $(find . -name "*.swift" ! -name "Package.swift*")
 
-          # 4. Derlenen .app paketini doğrula ve IPA üret
-          APP_PATH=$(find build/Build/Products/Release-iphoneos -name "*.app" | head -n 1)
+          # IPA Yapısını Hazırla
+          mkdir -p Payload/Hatirlatici.app
+          cp build_output/Hatirlatici Payload/Hatirlatici.app/
           
-          if [ -z "$APP_PATH" ]; then
-            echo "HATA: .app klasörü bulunamadı!"
-            exit 1
+          if [ -f "Info.plist" ]; then
+            cp Info.plist Payload/Hatirlatici.app/
           fi
-
-          mkdir -p Payload
-          cp -R "$APP_PATH" Payload/
           
-          # IPA sıkıştırmasını gerçekleştir
+          # IPA Oluştur
           zip -r Hatirlatici.ipa Payload
           
           mkdir -p $CM_BUILD_DIR/output
